@@ -1,12 +1,17 @@
 package com.obolonyk.jdbctemplate;
 
 import com.obolonyk.entity.Product;
+import com.obolonyk.entity.Role;
+import com.obolonyk.entity.User;
 import com.obolonyk.rowmapper.ProductRowMapper;
+import com.obolonyk.rowmapper.UserRowMapper;
 import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -14,19 +19,34 @@ import static org.junit.jupiter.api.Assertions.*;
 class JDBCTemplateTest {
     DataSource dataSource = mock(DataSource.class);
     Connection connection = mock(Connection.class);
-    Statement statement = mock(Statement.class);
     PreparedStatement preparedStatement = mock(PreparedStatement.class);
     ResultSet resultSet = mock(ResultSet.class);
 
-    RowMapper<Product> rowMapper = new ProductRowMapper();
-    JDBCTemplate<Product> jdbcTemplate = new JDBCTemplate<>(dataSource);
+    LocalDateTime time = LocalDateTime.now();
+
+    RowMapper<Product> productRowMapper = new ProductRowMapper();
+    RowMapper<User> userRowMapper = new UserRowMapper();
+
+    JDBCTemplate<Product> productJDBCTemplate = new JDBCTemplate<>(dataSource);
+    JDBCTemplate<User> userJDBCTemplate = new JDBCTemplate<>(dataSource);
 
     Product product = Product.builder()
             .creationDate(LocalDateTime.now())
             .name("POP")
             .price(99.0)
             .description("LOW")
-            .id(1)
+            .creationDate(time)
+            .id(1L)
+            .build();
+    User user = User.builder()
+            .id(1L)
+            .name("Ki")
+            .lastName("Ne")
+            .email("ki18@mail.com")
+            .login("kim18")
+            .password("kim18")
+            .salt("cat")
+            .role(Role.USER)
             .build();
 
     @Test
@@ -34,19 +54,32 @@ class JDBCTemplateTest {
         String SELECT_ALL = "SELECT id, name, price, creation_date, description FROM products;";
 
         when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.createStatement()).thenReturn(statement);
-        when(statement.executeQuery(SELECT_ALL)).thenReturn(resultSet);
+        when(connection.prepareStatement(SELECT_ALL)).thenReturn(preparedStatement);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
 
-       jdbcTemplate.query(SELECT_ALL, rowMapper);
+        when(resultSet.next())
+                .thenReturn(true)
+                .thenReturn(false);
 
-        verify(dataSource, times(1)).getConnection();
-        verify(connection, times(1)).createStatement();
-        verify(statement, times(1)).executeQuery(SELECT_ALL);
-        verify(resultSet, times(1)).next();
+        when(resultSet.getLong("id")).thenReturn(1L);
+        when(resultSet.getString("name")).thenReturn("POP");
+        when(resultSet.getDouble("price")).thenReturn(99.0);
+        when(resultSet.getObject("creation_date", LocalDateTime.class)).thenReturn(time);
+        when(resultSet.getString("description")).thenReturn("LOW");
 
-        verify(resultSet, times(1)).close();
-        verify(statement, times(1)).close();
-        verify(connection, times(1)).close();
+        List<Product> products = productJDBCTemplate.query(SELECT_ALL, productRowMapper);
+        assertFalse(products.isEmpty());
+        assertEquals(1, products.size());
+        assertEquals(product, products.get(0));
+
+        verify(dataSource).getConnection();
+        verify(connection).prepareStatement(SELECT_ALL);
+        verify(preparedStatement).executeQuery();
+        verify(resultSet, times(2)).next();
+
+        verify(resultSet).close();
+        verify(preparedStatement).close();
+        verify(connection).close();
     }
 
     @Test
@@ -57,17 +90,31 @@ class JDBCTemplateTest {
         when(connection.prepareStatement(SELECT_BY_ID)).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
 
-       jdbcTemplate.queryObject(SELECT_BY_ID, rowMapper, 1L);
+        when(resultSet.next())
+                .thenReturn(true)
+                .thenReturn(false);
 
-        verify(dataSource, times(1)).getConnection();
-        verify(connection, times(1)).prepareStatement(SELECT_BY_ID);
-        verify(preparedStatement, times(1)).setObject(1, 1L);
-        verify(preparedStatement, times(1)).executeQuery();
+        when(resultSet.getLong("id")).thenReturn(product.getId());
+        when(resultSet.getString("name")).thenReturn(product.getName());
+        when(resultSet.getDouble("price")).thenReturn(product.getPrice());
+        when(resultSet.getObject("creation_date", LocalDateTime.class)).thenReturn(time);
+        when(resultSet.getString("description")).thenReturn(product.getDescription());
+
+        Optional<Product> optionalProduct = productJDBCTemplate.queryObject(SELECT_BY_ID, productRowMapper, 1L);
+        assertFalse(optionalProduct.isEmpty());
+        assertEquals(product, optionalProduct.get());
+
+        verify(dataSource).getConnection();
+        verify(connection).prepareStatement(SELECT_BY_ID);
+
+        verify(preparedStatement).setLong(1, 1L);
+
+        verify(preparedStatement).executeQuery();
         verify(resultSet, times(1)).next();
 
-        verify(resultSet, times(1)).close();
+        verify(resultSet).close();
         verify(preparedStatement, times(1)).close();
-        verify(connection, times(1)).close();
+        verify(connection).close();
     }
 
     @Test
@@ -78,7 +125,7 @@ class JDBCTemplateTest {
         when(connection.prepareStatement(SAVE)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
-        int i = jdbcTemplate.executeUpdate(SAVE,
+        int i = productJDBCTemplate.executeUpdate(SAVE,
                 product.getName(),
                 product.getPrice(),
                 product.getCreationDate(),
@@ -86,18 +133,18 @@ class JDBCTemplateTest {
 
         assertEquals(1, i);
 
-        verify(dataSource, times(1)).getConnection();
-        verify(connection, times(1)).prepareStatement(SAVE);
+        verify(dataSource).getConnection();
+        verify(connection).prepareStatement(SAVE);
 
-        verify(preparedStatement, times(1)).setObject(1, product.getName());
-        verify(preparedStatement, times(1)).setObject(2, product.getPrice());
-        verify(preparedStatement, times(1)).setObject(3, product.getCreationDate());
-        verify(preparedStatement, times(1)).setObject(4, product.getDescription());
+        verify(preparedStatement).setString(1, product.getName());
+        verify(preparedStatement).setDouble(2, product.getPrice());
+        verify(preparedStatement).setTimestamp(3, Timestamp.valueOf(product.getCreationDate()));
+        verify(preparedStatement).setString(4, product.getDescription());
 
-        verify(preparedStatement, times(1)).executeUpdate();
+        verify(preparedStatement).executeUpdate();
 
-        verify(preparedStatement, times(1)).close();
-        verify(connection, times(1)).close();
+        verify(preparedStatement).close();
+        verify(connection).close();
     }
 
     @Test
@@ -108,43 +155,58 @@ class JDBCTemplateTest {
         when(connection.prepareStatement(SEARCH)).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
 
-        String [] args = new String[]{"A", "A"};
+        String[] args = new String[]{"O", "O"};
 
-        jdbcTemplate.queryListObject(SEARCH, rowMapper, args);
+        when(resultSet.next())
+                .thenReturn(true)
+                .thenReturn(false);
 
-        verify(dataSource, times(1)).getConnection();
-        verify(connection, times(1)).prepareStatement(SEARCH);
+        when(resultSet.getLong("id")).thenReturn(product.getId());
+        when(resultSet.getString("name")).thenReturn(product.getName());
+        when(resultSet.getDouble("price")).thenReturn(product.getPrice());
 
-        verify(preparedStatement, times(1)).setObject(1, "A");
-        verify(preparedStatement, times(1)).setObject(2, "A");
+        when(resultSet.getObject("creation_date", LocalDateTime.class)).thenReturn(time);
+        when(resultSet.getString("description")).thenReturn("LOW");
 
-        verify(preparedStatement, times(1)).executeQuery();
-        verify(resultSet, times(1)).next();
+        List<Product> products = productJDBCTemplate.query(SEARCH, productRowMapper, args);
 
-        verify(resultSet, times(1)).close();
-        verify(preparedStatement, times(1)).close();
-        verify(connection, times(1)).close();
+        assertFalse(products.isEmpty());
+        assertEquals(1, products.size());
+        assertEquals(product, products.get(0));
+
+        verify(dataSource).getConnection();
+        verify(connection).prepareStatement(SEARCH);
+
+        verify(preparedStatement).setString(1, "O");
+        verify(preparedStatement).setString(2, "O");
+
+        verify(preparedStatement).executeQuery();
+        verify(resultSet, times(2)).next();
+
+        verify(resultSet).close();
+        verify(preparedStatement).close();
+        verify(connection).close();
     }
 
     @Test
     void testExecuteUpdateRemove() throws SQLException {
-       String DELETE = "DELETE FROM Products WHERE id = ?;";
+        String DELETE = "DELETE FROM Products WHERE id = ?;";
 
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(DELETE)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
-        int i = jdbcTemplate.executeUpdate(DELETE, 1);
+        int i = productJDBCTemplate.executeUpdate(DELETE, 1L);
         assertEquals(1, i);
 
-        verify(dataSource, times(1)).getConnection();
-        verify(connection, times(1)).prepareStatement(DELETE);
+        verify(dataSource).getConnection();
+        verify(connection).prepareStatement(DELETE);
 
-        verify(preparedStatement, times(1)).setObject(1, 1);
+        verify(preparedStatement).setLong(1, 1L);
 
-        verify(preparedStatement, times(1)).executeUpdate();
-        verify(preparedStatement, times(1)).close();
-        verify(connection, times(1)).close();
+        verify(preparedStatement).executeUpdate();
+        verify(preparedStatement).close();
+        verify(connection).close();
     }
 
     @Test
@@ -155,23 +217,97 @@ class JDBCTemplateTest {
         when(connection.prepareStatement(UPDATE)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
-        int i = jdbcTemplate.executeUpdate(UPDATE, product.getName(),
+        int i = productJDBCTemplate.executeUpdate(UPDATE,
+                product.getName(),
                 product.getPrice(),
                 product.getDescription(),
                 product.getId());
 
         assertEquals(1, i);
 
-        verify(dataSource, times(1)).getConnection();
-        verify(connection, times(1)).prepareStatement(UPDATE);
+        verify(dataSource).getConnection();
+        verify(connection).prepareStatement(UPDATE);
 
-        verify(preparedStatement, times(1)).setObject(1, product.getName());
-        verify(preparedStatement, times(1)).setObject(2, product.getPrice());
-        verify(preparedStatement, times(1)).setObject(3, product.getDescription());
-        verify(preparedStatement, times(1)).setObject(4, product.getId());
+        verify(preparedStatement).setString(1, product.getName());
+        verify(preparedStatement).setDouble(2, product.getPrice());
+        verify(preparedStatement).setString(3, product.getDescription());
+        verify(preparedStatement).setLong(4, product.getId());
 
-        verify(preparedStatement, times(1)).executeUpdate();
-        verify(preparedStatement, times(1)).close();
-        verify(connection, times(1)).close();
+        verify(preparedStatement).executeUpdate();
+        verify(preparedStatement).close();
+        verify(connection).close();
     }
+
+
+    @Test
+    void testQueryObjectUser() throws SQLException {
+        String SELECT_BY_LOGIN = "SELECT id, name, last_name, login, email, password, salt, role FROM users WHERE login = ?;";
+
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(SELECT_BY_LOGIN)).thenReturn(preparedStatement);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+
+        when(resultSet.next())
+                .thenReturn(true)
+                .thenReturn(false);
+
+        when(resultSet.getLong("id")).thenReturn(user.getId());
+        when(resultSet.getString("name")).thenReturn(user.getName());
+        when(resultSet.getString("last_name")).thenReturn(user.getLastName());
+        when(resultSet.getString("login")).thenReturn(user.getLogin());
+        when(resultSet.getString("email")).thenReturn(user.getEmail());
+        when(resultSet.getString("password")).thenReturn(user.getPassword());
+        when(resultSet.getString("salt")).thenReturn(user.getSalt());
+        when(resultSet.getString("role")).thenReturn(user.getRole().getUserRole());
+
+
+        Optional<User> optionalUser = userJDBCTemplate.queryObject(SELECT_BY_LOGIN, userRowMapper, user.getLogin());
+        assertFalse(optionalUser.isEmpty());
+        assertEquals(user, optionalUser.get());
+
+        verify(dataSource).getConnection();
+        verify(connection).prepareStatement(SELECT_BY_LOGIN);
+        verify(preparedStatement).setString(1, user.getLogin());
+        verify(preparedStatement).executeQuery();
+        verify(resultSet, times(1)).next();
+
+        verify(resultSet).close();
+        verify(preparedStatement, times(1)).close();
+        verify(connection).close();
+    }
+
+    @Test
+    void testExecuteUpdateSaveUser() throws SQLException {
+        String SAVE = "INSERT INTO users (name, last_name, login, email, password, salt, role) VALUES (?, ?, ?, ?, ?, ?, 'USER');";
+
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(SAVE)).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+
+        int i = userJDBCTemplate.executeUpdate(SAVE,
+        user.getName(),
+        user.getLastName(),
+        user.getLogin(),
+        user.getEmail(),
+        user.getPassword(),
+        user.getSalt());
+
+        assertEquals(1, i);
+
+        verify(dataSource).getConnection();
+        verify(connection).prepareStatement(SAVE);
+
+        verify(preparedStatement).setString(1, user.getName());
+        verify(preparedStatement).setString(2, user.getLastName());
+        verify(preparedStatement).setString(3, user.getLogin());
+        verify(preparedStatement).setString(4, user.getEmail());
+        verify(preparedStatement).setString(5, user.getPassword());
+        verify(preparedStatement).setString(6, user.getSalt());
+
+        verify(preparedStatement).executeUpdate();
+
+        verify(preparedStatement).close();
+        verify(connection).close();
+    }
+
 }
