@@ -9,8 +9,7 @@ import java.util.*;
 import static com.obolonyk.jdbctemplate.ReflectionHelper.*;
 
 @Slf4j
-public class JDBCTemplate<T> {
-
+public class JDBCTemplate<T>  {
 
     private DataSource dataSource;
 
