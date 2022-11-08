@@ -6,8 +6,7 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.*;
 
-import static com.obolonyk.jdbctemplate.ReflectionHelper.getSetterNameAndClassName;
-import static com.obolonyk.jdbctemplate.ReflectionHelper.initPreparedStatement;
+import static com.obolonyk.jdbctemplate.ReflectionHelper.*;
 
 @Slf4j
 public class JDBCTemplate<T> {

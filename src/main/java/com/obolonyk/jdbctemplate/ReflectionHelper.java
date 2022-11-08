@@ -34,8 +34,9 @@ public class ReflectionHelper {
         ret.add(Double.class);
         return ret;
     }
-    private static Map<Class<?>, Class<?>> getWrapperToPrimitiveClasses(){
-        Map <Class<?>, Class<?>> map = new HashMap<>();
+
+    private static Map<Class<?>, Class<?>> getWrapperToPrimitiveClasses() {
+        Map<Class<?>, Class<?>> map = new HashMap<>();
         map.put(Boolean.class, Boolean.TYPE);
         map.put(Character.class, Character.TYPE);
         map.put(Byte.class, Byte.TYPE);
@@ -52,16 +53,23 @@ public class ReflectionHelper {
         Set<Map.Entry<String, Object>> entrySet = data.entrySet();
         for (Map.Entry<String, Object> entry : entrySet) {
             Object value = entry.getValue();
-            Class<?> unwrappedClass;
-            if (isWrapperType(value.getClass())){
-                unwrappedClass = WRAPPER_PRIMITIVES_TYPES.get(value.getClass());
-            }else {
-                unwrappedClass = value.getClass();
-            }
-            Method method = preparedStatement.getClass().getDeclaredMethod(entry.getKey(), int.class, unwrappedClass);
+            Class<?> unwrappedClass = getUnwrapClassType(value);
+
+            Class<? extends PreparedStatement> preparedStatementClass = preparedStatement.getClass();
+            Method method = preparedStatementClass.getDeclaredMethod(entry.getKey(), int.class, unwrappedClass);
             method.invoke(preparedStatement, index, entry.getValue());
         }
 
+    }
+
+    static Class<?> getUnwrapClassType(Object value) {
+        Class<?> unwrappedClass;
+        if (isWrapperType(value.getClass())) {
+            unwrappedClass = WRAPPER_PRIMITIVES_TYPES.get(value.getClass());
+        } else {
+            unwrappedClass = value.getClass();
+        }
+        return unwrappedClass;
     }
 
     public static Map<String, Object> getSetterNameAndClassName(Object arg) {
@@ -70,12 +78,12 @@ public class ReflectionHelper {
         stringBuilder.append(SETTER_PREFIX);
         Class<?> aClass = arg.getClass();
 
-        if (aClass == Integer.class){
+        if (aClass == Integer.class) {
             stringBuilder.append(INT_SUFFIX);
             map.put(stringBuilder.toString(), arg);
             return map;
         }
-        if(aClass == LocalDateTime.class){
+        if (aClass == LocalDateTime.class) {
             Timestamp value = Timestamp.valueOf((LocalDateTime) arg);
             String simpleName = value.getClass().getSimpleName();
             String setterName = stringBuilder.append(simpleName).toString();
