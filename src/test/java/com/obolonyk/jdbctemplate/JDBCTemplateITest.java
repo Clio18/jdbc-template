@@ -3,20 +3,15 @@ package com.obolonyk.jdbctemplate;
 import com.obolonyk.entity.Product;
 import com.obolonyk.rowmapper.ProductRowMapper;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.h2.tools.RunScript;
-import org.junit.jupiter.api.AfterEach;
+import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,29 +26,17 @@ class JDBCTemplateITest {
 
     private DataSource dataSource;
     private final RowMapper<Product> rowMapper = new ProductRowMapper();
-    private BufferedReader bufferedReader;
-    private Connection connection;
 
     @BeforeEach
-    void init() throws SQLException {
+    void init(){
         BasicDataSource basicDataSource = new BasicDataSource();
         basicDataSource.setUsername("sa");
         basicDataSource.setPassword("");
         basicDataSource.setUrl("jdbc:h2:mem:test");
         dataSource = basicDataSource;
-        connection = dataSource.getConnection();
-        bufferedReader = new BufferedReader(
-                new InputStreamReader(Objects.requireNonNull(
-                        JDBCTemplateITest.class.getClassLoader().getResourceAsStream("db.sql"))));
-        RunScript.execute(connection, bufferedReader);
-    }
 
-    @AfterEach
-    void after() throws SQLException {
-        bufferedReader = new BufferedReader(
-                new InputStreamReader(Objects.requireNonNull(
-                        JDBCTemplateITest.class.getClassLoader().getResourceAsStream("drop.sql"))));
-        RunScript.execute(connection, bufferedReader);
+        Flyway flyway = Flyway.configure().dataSource(dataSource).load();
+        flyway.migrate();
     }
 
     @Test
@@ -88,17 +71,19 @@ class JDBCTemplateITest {
                 product.getPrice(),
                 product.getCreationDate(),
                 product.getDescription());
+
+        assertEquals(1, i);
     }
 
     @Test
     void testGetBySearchWhenPatternValid() throws SQLException {
         JDBCTemplate<Product> jdbcTemplate = new JDBCTemplate<>(dataSource);
-        List<Product> list = jdbcTemplate.query(SEARCH, rowMapper, "A", "A");
+        List<Product> list = jdbcTemplate.query(SEARCH, rowMapper, "C", "CC");
         assertFalse(list.isEmpty());
         assertEquals(1, list.size());
         Product product = list.get(0);
-        assertEquals("A", product.getName());
-        assertEquals("AA", product.getDescription());
+        assertEquals("C", product.getName());
+        assertEquals("CC", product.getDescription());
     }
 
     @Test
@@ -118,7 +103,7 @@ class JDBCTemplateITest {
     @Test
     void testExecuteUpdateUpdate() throws SQLException {
         JDBCTemplate<Product> jdbcTemplate = new JDBCTemplate<>(dataSource);
-        int i = jdbcTemplate.executeUpdate(UPDATE, "POP", 99.0, "LOW", 1);
+        int i = jdbcTemplate.executeUpdate(UPDATE, "POP", 99.0, "LOW", 4);
         assertEquals(1, i);
     }
 }

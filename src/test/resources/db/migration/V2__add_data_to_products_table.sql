@@ -1,11 +1,3 @@
-CREATE TABLE IF NOT EXISTS products(
-   id SERIAL PRIMARY KEY,
-   name VARCHAR(100),
-   price NUMERIC,
-   creation_date TIMESTAMP,
-   description varchar(500)
-);
-
 INSERT INTO products (name, price, creation_date, description) VALUES ('A', 1.0, '2021-09-14', 'AA');
 INSERT INTO products (name, price, creation_date, description) VALUES ('B', 2.0, '2022-10-13', 'BB');
 INSERT INTO products (name, price, creation_date, description) VALUES ('C', 3.0, '2023-11-14', 'CC');

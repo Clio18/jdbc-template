@@ -2,7 +2,6 @@ package com.obolonyk.jdbctemplate;
 
 import org.junit.jupiter.api.Test;
 
-import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -11,20 +10,18 @@ import java.util.Set;
 import static com.obolonyk.jdbctemplate.ReflectionHelper.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import static org.mockito.Mockito.*;
-
 class ReflectionHelperTest {
-    private Boolean booleanArg = true;
-    private Character charArg = 'c';
-    private Byte byteArg = 2;
-    private Short shortArg = 2;
-    private Integer intArg = 2;
-    private Long longArg = 2L;
-    private Float floatArg = 2.1f;
-    private Double doubleArg = 2.1;
-    private String strArg = "str";
-    private Timestamp timestampArg = Timestamp.valueOf(LocalDateTime.now());
-    private LocalDateTime localDateTimeArg = LocalDateTime.now();
+    private final Boolean booleanArg = true;
+    private final Character charArg = 'c';
+    private final Byte byteArg = 2;
+    private final Short shortArg = 2;
+    private final Integer intArg = 2;
+    private final Long longArg = 2L;
+    private final Float floatArg = 2.1f;
+    private final Double doubleArg = 2.1;
+    private final String strArg = "str";
+    private final Timestamp timestampArg = Timestamp.valueOf(LocalDateTime.now());
+    private final LocalDateTime localDateTimeArg = LocalDateTime.now();
 
 
     @Test
