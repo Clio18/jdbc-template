@@ -44,7 +44,7 @@ class ReflectionHelperTest {
 
     @Test
     void testGetSetterNameAndClassNameWrapperType() {
-        Map<String, Object> map = getSetterNameAndClassName(longArg);
+        Map<String, Object> map = getSetterNameAndObjectValue(longArg);
         assertFalse(map.isEmpty());
 
         Set<Map.Entry<String, Object>> entrySet = map.entrySet();
@@ -58,7 +58,7 @@ class ReflectionHelperTest {
 
     @Test
     void testGetSetterNameAndClassNameStringType() {
-        Map<String, Object> map = getSetterNameAndClassName(strArg);
+        Map<String, Object> map = getSetterNameAndObjectValue(strArg);
         assertFalse(map.isEmpty());
 
         Set<Map.Entry<String, Object>> entrySet = map.entrySet();
@@ -72,7 +72,7 @@ class ReflectionHelperTest {
 
     @Test
     void testGetSetterNameAndClassNameIntegerType() {
-        Map<String, Object> map = getSetterNameAndClassName(intArg);
+        Map<String, Object> map = getSetterNameAndObjectValue(intArg);
         assertFalse(map.isEmpty());
 
         Set<Map.Entry<String, Object>> entrySet = map.entrySet();
@@ -86,7 +86,7 @@ class ReflectionHelperTest {
 
     @Test
     void testGetSetterNameAndClassNameLocalDateTimeType() {
-        Map<String, Object> map = getSetterNameAndClassName(localDateTimeArg);
+        Map<String, Object> map = getSetterNameAndObjectValue(localDateTimeArg);
         assertFalse(map.isEmpty());
 
         Set<Map.Entry<String, Object>> entrySet = map.entrySet();

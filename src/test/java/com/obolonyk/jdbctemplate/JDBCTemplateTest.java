@@ -17,20 +17,17 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class JDBCTemplateTest {
-    DataSource dataSource = mock(DataSource.class);
-    Connection connection = mock(Connection.class);
-    PreparedStatement preparedStatement = mock(PreparedStatement.class);
-    ResultSet resultSet = mock(ResultSet.class);
+    private final PreparedStatement preparedStatement = mock(PreparedStatement.class);
+    private final DataSource dataSource = mock(DataSource.class);
+    private final Connection connection = mock(Connection.class);
+    private final ResultSet resultSet = mock(ResultSet.class);
 
-    LocalDateTime time = LocalDateTime.now();
+    private final RowMapper<Product> productRowMapper = new ProductRowMapper();
+    private final JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
+    private final RowMapper<User> userRowMapper = new UserRowMapper();
+    private final LocalDateTime time = LocalDateTime.now();
 
-    RowMapper<Product> productRowMapper = new ProductRowMapper();
-    RowMapper<User> userRowMapper = new UserRowMapper();
-
-    JDBCTemplate<Product> productJDBCTemplate = new JDBCTemplate<>(dataSource);
-    JDBCTemplate<User> userJDBCTemplate = new JDBCTemplate<>(dataSource);
-
-    Product product = Product.builder()
+    private final Product product = Product.builder()
             .creationDate(LocalDateTime.now())
             .name("POP")
             .price(99.0)
@@ -38,7 +35,7 @@ class JDBCTemplateTest {
             .creationDate(time)
             .id(1L)
             .build();
-    User user = User.builder()
+    private final User user = User.builder()
             .id(1L)
             .name("Ki")
             .lastName("Ne")
@@ -67,7 +64,7 @@ class JDBCTemplateTest {
         when(resultSet.getObject("creation_date", LocalDateTime.class)).thenReturn(time);
         when(resultSet.getString("description")).thenReturn("LOW");
 
-        List<Product> products = productJDBCTemplate.query(SELECT_ALL, productRowMapper);
+        List<Product> products = jdbcTemplate.query(SELECT_ALL, productRowMapper);
         assertFalse(products.isEmpty());
         assertEquals(1, products.size());
         assertEquals(product, products.get(0));
@@ -100,7 +97,7 @@ class JDBCTemplateTest {
         when(resultSet.getObject("creation_date", LocalDateTime.class)).thenReturn(time);
         when(resultSet.getString("description")).thenReturn(product.getDescription());
 
-        Optional<Product> optionalProduct = productJDBCTemplate.queryObject(SELECT_BY_ID, productRowMapper, 1L);
+        Optional<Product> optionalProduct = jdbcTemplate.queryObject(SELECT_BY_ID, productRowMapper, 1L);
         assertFalse(optionalProduct.isEmpty());
         assertEquals(product, optionalProduct.get());
 
@@ -125,7 +122,7 @@ class JDBCTemplateTest {
         when(connection.prepareStatement(SAVE)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
-        int i = productJDBCTemplate.executeUpdate(SAVE,
+        int i = jdbcTemplate.update(SAVE,
                 product.getName(),
                 product.getPrice(),
                 product.getCreationDate(),
@@ -168,7 +165,7 @@ class JDBCTemplateTest {
         when(resultSet.getObject("creation_date", LocalDateTime.class)).thenReturn(time);
         when(resultSet.getString("description")).thenReturn("LOW");
 
-        List<Product> products = productJDBCTemplate.query(SEARCH, productRowMapper, args);
+        List<Product> products = jdbcTemplate.query(SEARCH, productRowMapper, args);
 
         assertFalse(products.isEmpty());
         assertEquals(1, products.size());
@@ -196,7 +193,7 @@ class JDBCTemplateTest {
         when(connection.prepareStatement(DELETE)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
-        int i = productJDBCTemplate.executeUpdate(DELETE, 1L);
+        int i = jdbcTemplate.update(DELETE, 1L);
         assertEquals(1, i);
 
         verify(dataSource).getConnection();
@@ -217,7 +214,7 @@ class JDBCTemplateTest {
         when(connection.prepareStatement(UPDATE)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
-        int i = productJDBCTemplate.executeUpdate(UPDATE,
+        int i = jdbcTemplate.update(UPDATE,
                 product.getName(),
                 product.getPrice(),
                 product.getDescription(),
@@ -261,7 +258,7 @@ class JDBCTemplateTest {
         when(resultSet.getString("role")).thenReturn(user.getRole().getUserRole());
 
 
-        Optional<User> optionalUser = userJDBCTemplate.queryObject(SELECT_BY_LOGIN, userRowMapper, user.getLogin());
+        Optional<User> optionalUser = jdbcTemplate.queryObject(SELECT_BY_LOGIN, userRowMapper, user.getLogin());
         assertFalse(optionalUser.isEmpty());
         assertEquals(user, optionalUser.get());
 
@@ -284,13 +281,13 @@ class JDBCTemplateTest {
         when(connection.prepareStatement(SAVE)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
-        int i = userJDBCTemplate.executeUpdate(SAVE,
-        user.getName(),
-        user.getLastName(),
-        user.getLogin(),
-        user.getEmail(),
-        user.getPassword(),
-        user.getSalt());
+        int i = jdbcTemplate.update(SAVE,
+                user.getName(),
+                user.getLastName(),
+                user.getLogin(),
+                user.getEmail(),
+                user.getPassword(),
+                user.getSalt());
 
         assertEquals(1, i);
 

@@ -23,25 +23,28 @@ class JDBCTemplateITest {
     private static final String DELETE = "DELETE FROM Products WHERE id = ?;";
     private static final String UPDATE = "UPDATE products SET name = ?, price = ?, description = ? where id = ?;";
     private static final String SEARCH = "SELECT id, name, price, creation_date, description FROM products WHERE name ilike ? OR description ilike ?;";
-
-    private DataSource dataSource;
     private final RowMapper<Product> rowMapper = new ProductRowMapper();
+    private final DataSource dataSource;
+    private final Flyway flyway;
 
-    @BeforeEach
-    void init(){
+
+    public JDBCTemplateITest() {
         BasicDataSource basicDataSource = new BasicDataSource();
         basicDataSource.setUsername("sa");
         basicDataSource.setPassword("");
         basicDataSource.setUrl("jdbc:h2:mem:test");
         dataSource = basicDataSource;
+        flyway = Flyway.configure().dataSource(dataSource).load();
+    }
 
-        Flyway flyway = Flyway.configure().dataSource(dataSource).load();
+    @BeforeEach
+    void before() {
         flyway.migrate();
     }
 
     @Test
     void testQuery() throws SQLException {
-        JDBCTemplate<Product> jdbcTemplate = new JDBCTemplate<>(dataSource);
+        JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         List<Product> list = jdbcTemplate.query(SELECT_ALL, rowMapper);
         assertFalse(list.isEmpty());
         assertEquals(4, list.size());
@@ -49,7 +52,7 @@ class JDBCTemplateITest {
 
     @Test
     void testQueryObject() throws SQLException {
-        JDBCTemplate<Product> jdbcTemplate = new JDBCTemplate<>(dataSource);
+        JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         Optional<Product> optional = jdbcTemplate.queryObject(SELECT_BY_ID, rowMapper, 1);
         assertFalse(optional.isEmpty());
         assertEquals("A", optional.get().getName());
@@ -58,7 +61,7 @@ class JDBCTemplateITest {
 
     @Test
     void testExecuteUpdateSave() throws SQLException {
-        JDBCTemplate<Product> jdbcTemplate = new JDBCTemplate<>(dataSource);
+        JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         Product product = Product.builder()
                 .creationDate(LocalDateTime.now())
                 .name("POP")
@@ -66,7 +69,7 @@ class JDBCTemplateITest {
                 .description("LOW")
                 .build();
 
-        int i = jdbcTemplate.executeUpdate(SAVE,
+        int i = jdbcTemplate.update(SAVE,
                 product.getName(),
                 product.getPrice(),
                 product.getCreationDate(),
@@ -77,7 +80,7 @@ class JDBCTemplateITest {
 
     @Test
     void testGetBySearchWhenPatternValid() throws SQLException {
-        JDBCTemplate<Product> jdbcTemplate = new JDBCTemplate<>(dataSource);
+        JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         List<Product> list = jdbcTemplate.query(SEARCH, rowMapper, "C", "CC");
         assertFalse(list.isEmpty());
         assertEquals(1, list.size());
@@ -88,22 +91,22 @@ class JDBCTemplateITest {
 
     @Test
     void testGetBySearchWhenPatternInValid() throws SQLException {
-        JDBCTemplate<Product> jdbcTemplate = new JDBCTemplate<>(dataSource);
+        JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         List<Product> list = jdbcTemplate.query(SEARCH, rowMapper, "NN", "MM");
         assertTrue(list.isEmpty());
     }
 
     @Test
     void testExecuteUpdateRemove() throws SQLException {
-        JDBCTemplate<Product> jdbcTemplate = new JDBCTemplate<>(dataSource);
-        int i = jdbcTemplate.executeUpdate(DELETE, 1);
+        JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
+        int i = jdbcTemplate.update(DELETE, 1);
         assertEquals(1, i);
     }
 
     @Test
     void testExecuteUpdateUpdate() throws SQLException {
-        JDBCTemplate<Product> jdbcTemplate = new JDBCTemplate<>(dataSource);
-        int i = jdbcTemplate.executeUpdate(UPDATE, "POP", 99.0, "LOW", 4);
+        JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
+        int i = jdbcTemplate.update(UPDATE, "POP", 99.0, "LOW", 4);
         assertEquals(1, i);
     }
 }

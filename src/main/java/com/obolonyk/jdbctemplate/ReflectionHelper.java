@@ -72,19 +72,19 @@ public class ReflectionHelper {
         return unwrappedClass;
     }
 
-    public static Map<String, Object> getSetterNameAndClassName(Object arg) {
-        Map<String, Object> map = new HashMap<>(1);
+    public static Map<String, Object> getSetterNameAndObjectValue(Object object) {
+        Map<String, Object> map = new HashMap<>(1, 1);
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(SETTER_PREFIX);
-        Class<?> aClass = arg.getClass();
+        Class<?> aClass = object.getClass();
 
         if (aClass == Integer.class) {
             stringBuilder.append(INT_SUFFIX);
-            map.put(stringBuilder.toString(), arg);
+            map.put(stringBuilder.toString(), object);
             return map;
         }
         if (aClass == LocalDateTime.class) {
-            Timestamp value = Timestamp.valueOf((LocalDateTime) arg);
+            Timestamp value = Timestamp.valueOf((LocalDateTime) object);
             String simpleName = value.getClass().getSimpleName();
             String setterName = stringBuilder.append(simpleName).toString();
             map.put(setterName, value);
@@ -93,7 +93,7 @@ public class ReflectionHelper {
 
         String name = aClass.getSimpleName();
         String setterName = stringBuilder.append(name).toString();
-        map.put(setterName, arg);
+        map.put(setterName, object);
         return map;
     }
 }

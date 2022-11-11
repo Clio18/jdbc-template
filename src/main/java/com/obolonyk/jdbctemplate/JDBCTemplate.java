@@ -1,5 +1,6 @@
 package com.obolonyk.jdbctemplate;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
@@ -9,7 +10,7 @@ import java.util.*;
 import static com.obolonyk.jdbctemplate.ReflectionHelper.*;
 
 @Slf4j
-public class JDBCTemplate<T>  {
+public class JDBCTemplate  {
 
     private DataSource dataSource;
 
@@ -17,7 +18,8 @@ public class JDBCTemplate<T>  {
         this.dataSource = dataSource;
     }
 
-    public List<T> query(String sql, RowMapper<T> rowMapper) throws SQLException {
+    @SneakyThrows
+    public <T>List<T> query(String sql, RowMapper<T> rowMapper) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql);
              ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -33,15 +35,16 @@ public class JDBCTemplate<T>  {
         }
     }
 
-    public Optional<T> queryObject(String sql, RowMapper<T> rowMapper, Object... args) throws SQLException {
+    @SneakyThrows
+    public <T>Optional<T> queryObject(String sql, RowMapper<T> rowMapper, Object... args) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
             log.trace("Connection was established, running sql query {}", sql);
             for (int i = 0; i < args.length; i++) {
                 int preparedStatementArgIndex = i+1;
-                Map<String, Object> data = getSetterNameAndClassName(args[i]);
-                initPreparedStatement(preparedStatement, data, preparedStatementArgIndex);
+                Map<String, Object> setterNameAndObjectValueMap = getSetterNameAndObjectValue(args[i]);
+                initPreparedStatement(preparedStatement, setterNameAndObjectValueMap, preparedStatementArgIndex);
             }
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -54,7 +57,8 @@ public class JDBCTemplate<T>  {
         }
     }
 
-    public int executeUpdate(String sql, Object... args) throws SQLException {
+    @SneakyThrows
+    public int update(String sql, Object... args) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
@@ -62,15 +66,16 @@ public class JDBCTemplate<T>  {
 
             for (int i = 0; i < args.length; i++) {
                 int preparedStatementArgIndex = i+1;
-                Map<String, Object> data = getSetterNameAndClassName(args[i]);
-                initPreparedStatement(preparedStatement, data, preparedStatementArgIndex);
+                Map<String, Object> setterNameAndObjectValueMap = getSetterNameAndObjectValue(args[i]);
+                initPreparedStatement(preparedStatement, setterNameAndObjectValueMap, preparedStatementArgIndex);
                 log.trace("Query index: {}, parameter: {}", i + 1, args[i]);
             }
             return preparedStatement.executeUpdate();
         }
     }
 
-    public List<T> query(String sql, RowMapper<T> rowMapper, Object... args) throws SQLException {
+    @SneakyThrows
+    public <T>List<T> query(String sql, RowMapper<T> rowMapper, Object... args) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
@@ -78,8 +83,8 @@ public class JDBCTemplate<T>  {
 
             for (int i = 0; i < args.length; i++) {
                 int preparedStatementArgIndex = i+1;
-                Map<String, Object> data = getSetterNameAndClassName(args[i]);
-                initPreparedStatement(preparedStatement, data, preparedStatementArgIndex);
+                Map<String, Object> setterNameAndObjectValueMap = getSetterNameAndObjectValue(args[i]);
+                initPreparedStatement(preparedStatement, setterNameAndObjectValueMap, preparedStatementArgIndex);
                 log.trace("Query index: {}, parameter: {}", i + 1, args[i]);
             }
 
