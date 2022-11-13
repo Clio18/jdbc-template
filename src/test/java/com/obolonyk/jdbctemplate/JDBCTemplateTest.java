@@ -5,6 +5,7 @@ import com.obolonyk.entity.Role;
 import com.obolonyk.entity.User;
 import com.obolonyk.rowmapper.ProductRowMapper;
 import com.obolonyk.rowmapper.UserRowMapper;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
@@ -47,7 +48,8 @@ class JDBCTemplateTest {
             .build();
 
     @Test
-    void testQuery() throws SQLException {
+    @SneakyThrows
+    void testQuery() {
         String SELECT_ALL = "SELECT id, name, price, creation_date, description FROM products;";
 
         when(dataSource.getConnection()).thenReturn(connection);
@@ -80,7 +82,8 @@ class JDBCTemplateTest {
     }
 
     @Test
-    void testQueryObject() throws SQLException {
+    @SneakyThrows
+    void testQueryObject() {
         String SELECT_BY_ID = "SELECT id, name, price, creation_date, description FROM products WHERE id = ?;";
 
         when(dataSource.getConnection()).thenReturn(connection);
@@ -115,7 +118,8 @@ class JDBCTemplateTest {
     }
 
     @Test
-    void testExecuteUpdateSave() throws SQLException {
+    @SneakyThrows
+    void testExecuteUpdateSave() {
         String SAVE = "INSERT INTO products (name, price, creation_date, description) VALUES (?, ?, ?, ?);";
 
         when(dataSource.getConnection()).thenReturn(connection);
@@ -145,7 +149,8 @@ class JDBCTemplateTest {
     }
 
     @Test
-    void testGetBySearch() throws SQLException {
+    @SneakyThrows
+    void testGetBySearch() {
         String SEARCH = "SELECT id, name, price, creation_date, description FROM products WHERE name ilike %?% OR description ilike %?%;";
 
         when(dataSource.getConnection()).thenReturn(connection);
@@ -186,7 +191,8 @@ class JDBCTemplateTest {
     }
 
     @Test
-    void testExecuteUpdateRemove() throws SQLException {
+    @SneakyThrows
+    void testExecuteUpdateRemove() {
         String DELETE = "DELETE FROM Products WHERE id = ?;";
 
         when(dataSource.getConnection()).thenReturn(connection);
@@ -207,7 +213,8 @@ class JDBCTemplateTest {
     }
 
     @Test
-    void testExecuteUpdateUpdate() throws SQLException {
+    @SneakyThrows
+    void testExecuteUpdateUpdate() {
         String UPDATE = "UPDATE products SET name = ?, price = ?, description = ? where id = ?;";
 
         when(dataSource.getConnection()).thenReturn(connection);
@@ -237,7 +244,8 @@ class JDBCTemplateTest {
 
 
     @Test
-    void testQueryObjectUser() throws SQLException {
+    @SneakyThrows
+    void testQueryObjectUser() {
         String SELECT_BY_LOGIN = "SELECT id, name, last_name, login, email, password, salt, role FROM users WHERE login = ?;";
 
         when(dataSource.getConnection()).thenReturn(connection);
@@ -274,7 +282,8 @@ class JDBCTemplateTest {
     }
 
     @Test
-    void testExecuteUpdateSaveUser() throws SQLException {
+    @SneakyThrows
+    void testExecuteUpdateSaveUser() {
         String SAVE = "INSERT INTO users (name, last_name, login, email, password, salt, role) VALUES (?, ?, ?, ?, ?, ?, 'USER');";
 
         when(dataSource.getConnection()).thenReturn(connection);
