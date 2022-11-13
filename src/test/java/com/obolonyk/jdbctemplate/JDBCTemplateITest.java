@@ -43,7 +43,7 @@ class JDBCTemplateITest {
     }
 
     @Test
-    void testQuery() throws SQLException {
+    void testQuery(){
         JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         List<Product> list = jdbcTemplate.query(SELECT_ALL, rowMapper);
         assertFalse(list.isEmpty());
@@ -51,7 +51,7 @@ class JDBCTemplateITest {
     }
 
     @Test
-    void testQueryObject() throws SQLException {
+    void testQueryObject() {
         JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         Optional<Product> optional = jdbcTemplate.queryObject(SELECT_BY_ID, rowMapper, 1);
         assertFalse(optional.isEmpty());
@@ -60,7 +60,7 @@ class JDBCTemplateITest {
     }
 
     @Test
-    void testExecuteUpdateSave() throws SQLException {
+    void testExecuteUpdateSave() {
         JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         Product product = Product.builder()
                 .creationDate(LocalDateTime.now())
@@ -79,7 +79,7 @@ class JDBCTemplateITest {
     }
 
     @Test
-    void testGetBySearchWhenPatternValid() throws SQLException {
+    void testGetBySearchWhenPatternValid() {
         JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         List<Product> list = jdbcTemplate.query(SEARCH, rowMapper, "C", "CC");
         assertFalse(list.isEmpty());
@@ -90,21 +90,21 @@ class JDBCTemplateITest {
     }
 
     @Test
-    void testGetBySearchWhenPatternInValid() throws SQLException {
+    void testGetBySearchWhenPatternInValid() {
         JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         List<Product> list = jdbcTemplate.query(SEARCH, rowMapper, "NN", "MM");
         assertTrue(list.isEmpty());
     }
 
     @Test
-    void testExecuteUpdateRemove() throws SQLException {
+    void testExecuteUpdateRemove(){
         JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         int i = jdbcTemplate.update(DELETE, 1);
         assertEquals(1, i);
     }
 
     @Test
-    void testExecuteUpdateUpdate() throws SQLException {
+    void testExecuteUpdateUpdate() {
         JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         int i = jdbcTemplate.update(UPDATE, "POP", 99.0, "LOW", 4);
         assertEquals(1, i);
