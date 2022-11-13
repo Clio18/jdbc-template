@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS products(
+CREATE TABLE IF NOT EXISTS products_flyway(
    id SERIAL PRIMARY KEY,
    name VARCHAR(100),
    price NUMERIC,

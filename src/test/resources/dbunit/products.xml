@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <PRODUCTS id="11" name="A" price="1.0" creation_date="2021-12-15" description="AA"/>
+    <PRODUCTS id="12" name="B" price="2.0" creation_date="2022-12-15" description="BB"/>
+    <PRODUCTS id="13" name="C" price="3.0" creation_date="2023-12-15" description="CC"/>
+    <PRODUCTS id="14" name="D" price="4.0" creation_date="2024-12-15" description="DD"/>
+    <PRODUCTS id="15" name="E" price="5.0" creation_date="2025-12-15" description="EE"/>
+</dataset>

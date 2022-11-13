@@ -150,7 +150,7 @@ class JDBCTemplateTest {
 
     @Test
     @SneakyThrows
-    void testGetBySearch(){
+    void testGetBySearch() {
         String SEARCH = "SELECT id, name, price, creation_date, description FROM products WHERE name ilike %?% OR description ilike %?%;";
 
         when(dataSource.getConnection()).thenReturn(connection);
@@ -191,7 +191,8 @@ class JDBCTemplateTest {
     }
 
     @Test
-    void testExecuteUpdateRemove() throws SQLException {
+    @SneakyThrows
+    void testExecuteUpdateRemove() {
         String DELETE = "DELETE FROM Products WHERE id = ?;";
 
         when(dataSource.getConnection()).thenReturn(connection);

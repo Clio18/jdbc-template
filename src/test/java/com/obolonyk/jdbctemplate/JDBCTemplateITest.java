@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -17,12 +16,12 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 class JDBCTemplateITest {
-    private static final String SELECT_ALL = "SELECT id, name, price, creation_date, description FROM products;";
-    private static final String SELECT_BY_ID = "SELECT id, name, price, creation_date, description FROM products WHERE id = ?;";
-    private static final String SAVE = "INSERT INTO products (name, price, creation_date, description) VALUES (?, ?, ?, ?);";
-    private static final String DELETE = "DELETE FROM Products WHERE id = ?;";
-    private static final String UPDATE = "UPDATE products SET name = ?, price = ?, description = ? where id = ?;";
-    private static final String SEARCH = "SELECT id, name, price, creation_date, description FROM products WHERE name ilike ? OR description ilike ?;";
+    private static final String SELECT_ALL = "SELECT id, name, price, creation_date, description FROM products_flyway;";
+    private static final String SELECT_BY_ID = "SELECT id, name, price, creation_date, description FROM products_flyway WHERE id = ?;";
+    private static final String SAVE = "INSERT INTO products_flyway (name, price, creation_date, description) VALUES (?, ?, ?, ?);";
+    private static final String DELETE = "DELETE FROM products_flyway WHERE id = ?;";
+    private static final String UPDATE = "UPDATE products_flyway SET name = ?, price = ?, description = ? where id = ?;";
+    private static final String SEARCH = "SELECT id, name, price, creation_date, description FROM products_flyway WHERE name ilike ? OR description ilike ?;";
     private final RowMapper<Product> rowMapper = new ProductRowMapper();
     private final DataSource dataSource;
     private final Flyway flyway;
@@ -43,7 +42,7 @@ class JDBCTemplateITest {
     }
 
     @Test
-    void testQuery(){
+    void testQuery() {
         JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         List<Product> list = jdbcTemplate.query(SELECT_ALL, rowMapper);
         assertFalse(list.isEmpty());
@@ -97,7 +96,7 @@ class JDBCTemplateITest {
     }
 
     @Test
-    void testExecuteUpdateRemove(){
+    void testExecuteUpdateRemove() {
         JDBCTemplate jdbcTemplate = new JDBCTemplate(dataSource);
         int i = jdbcTemplate.update(DELETE, 1);
         assertEquals(1, i);
