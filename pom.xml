@@ -80,18 +80,13 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-            <version>9.2.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.dbunit</groupId>
             <artifactId>dbunit</artifactId>
             <version>2.7.3</version>
             <scope>test</scope>
         </dependency>
 
+        <!-- for db unit integration testing-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -99,5 +94,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>
