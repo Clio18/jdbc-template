@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
-    <PRODUCTS id="16" name="POP" price="99.0" creation_date="2022-12-15" description="LOW"/>
+    <PRODUCTS id="16" name="POP" price="99.0" creation_date="2022-12-15 00:00:00.0" description="LOW"/>
 </dataset>
